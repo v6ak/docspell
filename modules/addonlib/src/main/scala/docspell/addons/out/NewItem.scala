@@ -9,11 +9,10 @@ package docspell.addons.out
 import cats.Monad
 import cats.syntax.all._
 import fs2.io.file.{Files, Path}
-
 import docspell.addons.out.NewItem.Meta
+import docspell.common.ProcessItemArgs.UploadContext
 import docspell.common._
 import docspell.logging.Logger
-
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 
@@ -78,7 +77,8 @@ object NewItem {
         fileFilter = None,
         tags = tags,
         reprocess = false,
-        attachmentsOnly = attachmentsOnly
+        attachmentsOnly = attachmentsOnly,
+        uploadContext = UploadContext.newItem
       )
   }
 

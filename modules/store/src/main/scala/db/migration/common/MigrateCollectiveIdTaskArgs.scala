@@ -346,6 +346,7 @@ object MigrateCollectiveIdTaskArgs extends TransactorSupport {
             validFileTypes = oldArgs.meta.validFileTypes,
             skipDuplicate = oldArgs.meta.skipDuplicate,
             fileFilter = oldArgs.meta.fileFilter,
+            uploadContext = oldArgs.meta.additionalMeta,
             tags = oldArgs.meta.tags,
             reprocess = oldArgs.meta.reprocess,
             attachmentsOnly = oldArgs.meta.attachmentsOnly

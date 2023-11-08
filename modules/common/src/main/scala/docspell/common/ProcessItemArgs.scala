@@ -6,6 +6,7 @@
 
 package docspell.common
 
+import cats.implicits.catsSyntaxOptionId
 import docspell.common.ProcessItemArgs._
 import docspell.common.syntax.all._
 
@@ -42,6 +43,18 @@ object ProcessItemArgs {
 
   val multiUploadTaskName = Ident.unsafe("multi-upload-process")
 
+  type UploadContext = Option[String] // Json // Map[Ident, String]
+
+  object UploadContext {
+    // markers; just for development
+    // TODO: remove
+    val readMultipart: UploadContext = "readMultipart".some
+    val mail: UploadContext = "mail".some
+    val newFile: UploadContext = "newFile".some
+    val newItem: UploadContext = "newItem".some
+    val noLongerAvailable: UploadContext = "No longer available".some
+  }
+
   case class ProcessMeta(
       collective: CollectiveId,
       itemId: Option[Ident],
@@ -52,6 +65,7 @@ object ProcessItemArgs {
       validFileTypes: Seq[MimeType],
       skipDuplicate: Boolean,
       fileFilter: Option[Glob],
+      uploadContext: UploadContext,
       tags: Option[List[String]],
       reprocess: Boolean,
       attachmentsOnly: Option[Boolean]

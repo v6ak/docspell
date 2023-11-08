@@ -17,6 +17,7 @@ import docspell.backend.ops.OCustomFields.SetValueResult
 import docspell.backend.ops.OJob.JobCancelResult
 import docspell.backend.ops.OUpload.{UploadData, UploadMeta, UploadResult}
 import docspell.backend.ops._
+import docspell.common.ProcessItemArgs.UploadContext
 import docspell.common._
 import docspell.common.syntax.all._
 import docspell.restapi.model._
@@ -312,6 +313,7 @@ trait Conversions {
               validFileTypes,
               m.skipDuplicates.getOrElse(false),
               m.fileFilter.getOrElse(Glob.all),
+              m.uploadContext,
               m.tags.map(_.items).getOrElse(Nil),
               m.language,
               m.attachmentsOnly,
@@ -330,6 +332,7 @@ trait Conversions {
             validFileTypes,
             false,
             Glob.all,
+            UploadContext.readMultipart,
             Nil,
             None,
             None,

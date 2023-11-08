@@ -14,6 +14,7 @@ import cats.implicits._
 import fs2._
 
 import docspell.backend.ops.{OJoex, OUpload}
+import docspell.common.ProcessItemArgs.UploadContext
 import docspell.common._
 import docspell.joex.Config
 import docspell.logging.Logger
@@ -325,6 +326,7 @@ object ScanMailboxTask {
           Seq.empty,
           true,
           args.fileFilter.getOrElse(Glob.all),
+          UploadContext.mail,
           args.tags.getOrElse(Nil),
           args.language,
           args.attachmentsOnly,

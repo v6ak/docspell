@@ -16,6 +16,7 @@ object ItemArgsExample extends Helper {
     validFileTypes = Seq.empty,
     skipDuplicate = true,
     fileFilter = None,
+    additionalMeta = "",
     tags = List("given-tag-1").some,
     reprocess = false,
     attachmentsOnly = None

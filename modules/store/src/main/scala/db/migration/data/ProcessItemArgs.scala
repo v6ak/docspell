@@ -6,6 +6,7 @@
 
 package db.migration.data
 
+import docspell.common.ProcessItemArgs.UploadContext
 import docspell.common.syntax.all._
 import docspell.common.{FileIntegrityCheckArgs => _, _}
 
@@ -60,6 +61,7 @@ object ProcessItemArgs {
       fileFilter: Option[Glob],
       tags: Option[List[String]],
       reprocess: Boolean,
+      additionalMeta: UploadContext,
       attachmentsOnly: Option[Boolean]
   )
 

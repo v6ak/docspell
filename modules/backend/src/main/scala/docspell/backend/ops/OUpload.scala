@@ -11,8 +11,8 @@ import cats.data.{EitherT, OptionT}
 import cats.effect._
 import cats.implicits._
 import fs2.Stream
-
 import docspell.backend.JobFactory
+import docspell.common.ProcessItemArgs.UploadContext
 import docspell.common._
 import docspell.scheduler.usertask.UserTaskScope
 import docspell.scheduler.{Job, JobStore}
@@ -66,6 +66,7 @@ object OUpload {
       validFileTypes: Seq[MimeType],
       skipDuplicates: Boolean,
       fileFilter: Glob,
+      uploadContext: UploadContext,
       tags: List[String],
       language: Option[Language],
       attachmentsOnly: Option[Boolean],
@@ -155,6 +156,7 @@ object OUpload {
             data.meta.validFileTypes,
             data.meta.skipDuplicates,
             data.meta.fileFilter.some,
+            data.meta.uploadContext,
             data.meta.tags.some,
             false,
             data.meta.attachmentsOnly

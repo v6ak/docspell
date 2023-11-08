@@ -9,12 +9,10 @@ package docspell.addons.out
 import cats.effect.Sync
 import cats.syntax.all._
 import fs2.io.file.{Files, Path}
-
 import docspell.addons.out.NewFile.Meta
-import docspell.common.ProcessItemArgs.ProcessMeta
+import docspell.common.ProcessItemArgs.{ProcessMeta, UploadContext}
 import docspell.common.{CollectiveId, Ident, Language}
 import docspell.logging.Logger
-
 import io.circe.Codec
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveConfiguredCodec
@@ -62,6 +60,7 @@ object NewFile {
         fileFilter = None,
         tags = None,
         reprocess = false,
+        uploadContext = UploadContext.newFile,
         attachmentsOnly = attachmentsOnly
       )
   }

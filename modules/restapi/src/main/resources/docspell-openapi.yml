@@ -8250,6 +8250,8 @@ components:
             attachments of the e-mail are imported and the e-mail body
             is discarded. E-mails that don't have any attachments are
             skipped.
+        uploadContext:
+          type: string
 
     Collective:
       description: |
