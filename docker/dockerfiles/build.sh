@@ -29,6 +29,8 @@ if ! docker buildx version > /dev/null; then
     exit 1
 fi
 
+tag_prefix="ghcr.io/$GITHUB_ACTOR/"
+
 set -e
 cd "$(dirname "$0")"
 
@@ -46,14 +48,14 @@ case $version in
         docker buildx build \
                --platform="$platforms" $push \
                --build-arg restserver_url="$url_base/docspell-restserver-$version.zip" \
-               --tag docspell/restserver:nightly \
+               --tag "${tag_prefix}docspell/restserver:nightly" \
                -f restserver.dockerfile .
 
         echo "============ Building Joex ============"
         docker buildx build \
                --platform="$platforms" $push \
                --build-arg joex_url="$url_base/docspell-joex-$version.zip" \
-               --tag docspell/joex:nightly \
+               --tag "${tag_prefix}docspell/joex:nightly" \
                -f joex.dockerfile .
         ;;
     *)
@@ -62,15 +64,15 @@ case $version in
         docker buildx build \
                --platform="$platforms" $push \
                --build-arg version=$version \
-               --tag docspell/restserver:v$version \
-               --tag docspell/restserver:latest \
+               --tag "${tag_prefix}docspell/restserver:v$version" \
+               --tag "${tag_prefix}docspell/restserver:latest" \
                -f restserver.dockerfile .
 
         echo "============ Building Joex ============"
         docker buildx build \
                --platform="$platforms" $push \
                --build-arg version=$version \
-               --tag docspell/joex:v$version \
-               --tag docspell/joex:latest \
+               --tag "${tag_prefix}docspell/joex:v$version" \
+               --tag "${tag_prefix}docspell/joex:latest" \
                -f joex.dockerfile .
 esac
