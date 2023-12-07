@@ -10,13 +10,14 @@ module App.View2 exposing (view)
 import Api.Model.AuthResult exposing (AuthResult)
 import App.Data exposing (..)
 import Comp.Basic as B
+import Comp.SearchMenu
 import Data.Environment as Env
 import Data.Flags
 import Data.Icons as Icons
 import Data.UiSettings
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Messages exposing (Messages)
 import Messages.App exposing (Texts)
 import Messages.UiLanguage
@@ -29,13 +30,14 @@ import Page.ManageData.View2 as ManageData
 import Page.NewInvite.View2 as NewInvite
 import Page.Queue.View2 as Queue
 import Page.Register.View2 as Register
-import Page.Search.Data
+import Page.Search.Data exposing (SearchType(..))
 import Page.Search.View2 as Search
 import Page.Share.View as Share
 import Page.ShareDetail.View as ShareDetail
 import Page.Upload.View2 as Upload
 import Page.UserSettings.View2 as UserSettings
 import Styles as S
+import Util.Html exposing (onKeyUpCode)
 
 
 view : Model -> List (Html Msg)
@@ -60,6 +62,10 @@ topNavUser auth model =
     let
         texts =
             Messages.get (App.Data.getUiLanguage model) model.uiSettings.timeZone
+        searchInput =
+            Comp.SearchMenu.textSearchString
+                model.searchModel.searchMenuModel.textSearchModel
+        env = modelEnv model
     in
     nav
         [ id "top-nav"
@@ -76,7 +82,48 @@ topNavUser auth model =
             }
         , headerNavItem True model
         , div [ class "flex flex-grow justify-center" ]
-            [ a
+            [
+                div
+                    [ class "relative flex flex-row" ]
+                    [
+                        input
+                        [ type_ "text"
+                        , placeholder
+                            (case model.searchModel.searchTypeDropdownValue of
+                                ContentOnlySearch ->
+                                    texts.search.contentSearch
+                                BasicSearch ->
+                                    texts.search.searchInNames
+                            )
+                        , onInput (\q -> SearchMsg (Page.Search.Data.SetBasicSearch q))
+                        , onKeyUpCode KeyUpSearch
+                        , Maybe.map value searchInput
+                            |> Maybe.withDefault (value "")
+
+                        , class (String.replace "rounded" "" S.textInput)
+                        , class "py-2 text-sm"
+                        , if env.flags.config.fullTextSearchEnabled then
+                            class " border-r-0 rounded-l"
+
+                          else
+                            class "border rounded"
+                        ]
+                        []
+                    , a
+                        [ class S.secondaryBasicButtonPlain
+                        , class "text-sm px-4 py-2 border rounded-r"
+                        , classList
+                            [ ( "hidden", not env.flags.config.fullTextSearchEnabled )
+                            ]
+                        , href "#"
+                        , onClick (SearchMsg Page.Search.Data.ToggleSearchType)
+                        ]
+                        [ i [ class "fa fa-exchange-alt" ] []
+                        ]
+                    ]
+
+
+            , a
                 [ class S.infoMessageBase
                 , class "my-2 px-1 py-1 rounded-lg inline-block hover:opacity-50"
                 , classList [ ( "hidden", not model.showNewItemsArrived ) ]
