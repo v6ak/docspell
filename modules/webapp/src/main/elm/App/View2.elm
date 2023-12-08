@@ -84,9 +84,10 @@ topNavUser auth model =
         , div [ class "flex flex-grow justify-center" ]
             [
                 div
-                    [ class "relative flex flex-row" ]
-                    [
-                        input
+                    [ class "relative flex flex-row"
+                     , classList [ ( "hidden", not env.settings.searchInHeaderBar ) ]
+                    ]
+                    [ input
                         [ type_ "text"
                         , placeholder
                             (case model.searchModel.searchTypeDropdownValue of
@@ -101,7 +102,7 @@ topNavUser auth model =
                             |> Maybe.withDefault (value "")
 
                         , class (String.replace "rounded" "" S.textInput)
-                        , class "py-2 text-sm"
+                        , class "py-2 text-sm grow-0"
                         , if env.flags.config.fullTextSearchEnabled then
                             class " border-r-0 rounded-l"
 
@@ -111,7 +112,7 @@ topNavUser auth model =
                         []
                     , a
                         [ class S.secondaryBasicButtonPlain
-                        , class "text-sm px-4 py-2 border rounded-r"
+                        , class "text-sm px-4 py-2 border"
                         , classList
                             [ ( "hidden", not env.flags.config.fullTextSearchEnabled )
                             ]
@@ -120,8 +121,15 @@ topNavUser auth model =
                         ]
                         [ i [ class "fa fa-exchange-alt" ] []
                         ]
+                    , a
+                        [ class S.secondaryBasicButtonPlain
+                        , class "text-sm px-4 py-2 border rounded-r"
+                        , href "#"
+                        , onClick (SetSearchInHeaderBar False)
+                        ]
+                        [ i [ class "fa fa-close" ] []
+                        ]
                     ]
-
 
             , a
                 [ class S.infoMessageBase
@@ -139,7 +147,18 @@ topNavUser auth model =
                 ]
             ]
         , div [ class "flex justify-end" ]
-            [ userMenu texts.app auth model
+            [ a
+                  [ class S.secondaryBasicButtonPlain
+                  , class "text-sm px-4 py-2 border rounded"
+                  , classList
+                      [ ( "hidden", env.settings.searchInHeaderBar )
+                      ]
+                  , href "#"
+                  , onClick (SetSearchInHeaderBar True)
+                  ]
+                  [ i [ class "fa fa-search" ] []
+                  ]
+            , userMenu texts.app auth model
             , dataMenu texts.app auth model
             ]
         ]

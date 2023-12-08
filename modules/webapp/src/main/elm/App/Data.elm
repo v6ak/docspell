@@ -204,6 +204,7 @@ type Msg
     | ClientSettingsSaveResp (Result Http.Error BasicResult)
     | ReceiveWsMessage (Result String ServerEvent)
     | ToggleShowNewItemsArrived
+    | SetSearchInHeaderBar Bool
     | KeyUpSearch (Maybe KeyCode)
 
 

@@ -394,6 +394,14 @@ updateWithSub msg model =
             )
         KeyUpSearch _ ->
             ( model, Cmd.none, Sub.none )
+        SetSearchInHeaderBar val ->
+            let
+                newSettings s = { s | searchInHeaderBar = Just val }
+            in
+            ( model
+            , Api.saveUserClientSettingsBy model.flags newSettings ClientSettingsSaveResp
+            , Sub.none
+            )
 
 modelEnv : Model -> Env.Update
 modelEnv model =

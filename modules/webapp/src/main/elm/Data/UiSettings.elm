@@ -82,6 +82,7 @@ type alias StoredUiSettings =
     , itemSearchShowGroups : Maybe Bool
     , itemSearchArrange : Maybe String
     , timeZone : Maybe String
+    , searchInHeaderBar : Maybe Bool
     }
 
 
@@ -108,6 +109,7 @@ emptyStoredSettings =
     , itemSearchShowGroups = Nothing
     , itemSearchArrange = Nothing
     , timeZone = Nothing
+    , searchInHeaderBar = Nothing
     }
 
 
@@ -145,6 +147,7 @@ storedUiSettingsDecoder =
         |> P.optional "itemSearchShowGroups" maybeBool Nothing
         |> P.optional "itemSearchArrange" maybeString Nothing
         |> P.optional "timeZone" maybeString Nothing
+        |> P.optional "searchInHeaderBar" maybeBool Nothing
 
 
 storedUiSettingsEncode : StoredUiSettings -> Encode.Value
@@ -178,6 +181,7 @@ storedUiSettingsEncode value =
             , maybeEnc "itemSearchShowGroups" Encode.bool value.itemSearchShowGroups
             , maybeEnc "itemSearchArrange" Encode.string value.itemSearchArrange
             , maybeEnc "timeZone" Encode.string value.timeZone
+            , maybeEnc "searchInHeaderBar" Encode.bool value.searchInHeaderBar
             ]
 
 
@@ -211,6 +215,7 @@ type alias UiSettings =
     , itemSearchShowGroups : Bool
     , itemSearchArrange : ItemArrange
     , timeZone : TimeZone
+    , searchInHeaderBar : Bool
     }
 
 
@@ -255,6 +260,7 @@ defaults =
     , itemSearchShowGroups = True
     , itemSearchArrange = Data.ItemArrange.Cards
     , timeZone = Data.TimeZone.utc
+    , searchInHeaderBar = False
     }
 
 
@@ -316,6 +322,7 @@ merge given fallback =
     , timeZone =
         Maybe.andThen Data.TimeZone.get given.timeZone
             |> Maybe.withDefault fallback.timeZone
+    , searchInHeaderBar = choose given.searchInHeaderBar fallback.searchInHeaderBar
     }
 
 
@@ -355,6 +362,7 @@ convert settings =
     , itemSearchShowGroups = Just settings.itemSearchShowGroups
     , itemSearchArrange = Data.ItemArrange.asString settings.itemSearchArrange |> Just
     , timeZone = Data.TimeZone.toName settings.timeZone |> Just
+    , searchInHeaderBar = Just settings.searchInHeaderBar
     }
 
 
