@@ -13,6 +13,7 @@ module App.Update exposing
 import Api
 import App.Data exposing (..)
 import Browser exposing (UrlRequest(..))
+import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Comp.AddonArchiveManage
 import Comp.DownloadAll
@@ -52,6 +53,7 @@ import Page.Upload.Update
 import Page.UserSettings.Data
 import Page.UserSettings.Update
 import Ports
+import Task
 import Url
 import Util.Html exposing (KeyCode(..))
 import Util.Maybe
@@ -396,12 +398,28 @@ updateWithSub msg model =
             ( model, Cmd.none, Sub.none )
         SetSearchInHeaderBar val ->
             let
+                newUiSettings s = { s | searchInHeaderBar = val }
+            in
+            -- Set model now, store it later, so the user doesn't need to wait on a slow network
+            -- When there is a failure when saving the user preference, it is just slightly annoying; probably less
+            -- annoying than having to wait for the result.
+            ( { model | uiSettings = newUiSettings model.uiSettings }
+            , Task.perform (always (StoreSearchInHeaderBar val)) (Task.succeed ())
+            , Sub.none
+            )
+        StoreSearchInHeaderBar val ->
+            let
                 newSettings s = { s | searchInHeaderBar = Just val }
             in
             ( model
-            , Api.saveUserClientSettingsBy model.flags newSettings ClientSettingsSaveResp
+            , Cmd.batch
+                [ Task.attempt (\_ -> NoOp) (Dom.focus "header-search-input")
+                , Api.saveUserClientSettingsBy model.flags newSettings ClientSettingsSaveResp
+                ]
             , Sub.none
             )
+        NoOp ->
+            ( model, Cmd.none, Sub.none )
 
 modelEnv : Model -> Env.Update
 modelEnv model =

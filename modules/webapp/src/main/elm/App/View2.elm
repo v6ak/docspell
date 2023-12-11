@@ -89,6 +89,7 @@ topNavUser auth model =
                     ]
                     [ input
                         [ type_ "text"
+                        , id "header-search-input"
                         , placeholder
                             (case model.searchModel.searchTypeDropdownValue of
                                 ContentOnlySearch ->

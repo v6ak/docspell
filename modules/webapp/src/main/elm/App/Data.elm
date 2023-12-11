@@ -205,7 +205,9 @@ type Msg
     | ReceiveWsMessage (Result String ServerEvent)
     | ToggleShowNewItemsArrived
     | SetSearchInHeaderBar Bool
+    | StoreSearchInHeaderBar Bool
     | KeyUpSearch (Maybe KeyCode)
+    | NoOp
 
 
 defaultPage : Flags -> Page
