@@ -81,7 +81,7 @@ topNavUser auth model =
             , activeStyle = "hover:bg-blue-200 dark:hover:bg-slate-800 w-12"
             }
         , headerNavItem True model
-        , div [ class "flex flex-grow justify-center" ]
+        , div [ class "flex flex-grow justify-center items-center space-x-4" ]
             [
                 div
                     [ class "relative flex flex-row"
