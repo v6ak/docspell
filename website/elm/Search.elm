@@ -129,7 +129,6 @@ view model =
                 [ input
                     [ type_ "text"
                     , value model.searchInput
-                    , autofocus True
                     , placeholder "Search …"
                     , class "w-full block h-8 border-0 border-b border-stone-400 mt-2 focus:ring-0 focus:border-indigo-500 dark:bg-stone-800 dark:focus:border-cyan-400"
                     , onInput SetSearch
