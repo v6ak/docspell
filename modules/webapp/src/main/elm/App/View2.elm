@@ -102,7 +102,7 @@ topNavUser auth model =
                             |> Maybe.withDefault (value "")
 
                         , class (String.replace "rounded" "" S.textInput)
-                        , class "py-2 text-sm grow-0"
+                        , class "py-2 text-sm grow-0 bg-blue-100"
                         , if env.flags.config.fullTextSearchEnabled then
                             class " border-r-0 rounded-l"
 
@@ -149,7 +149,7 @@ topNavUser auth model =
         , div [ class "flex justify-end" ]
             [ a
                   [ class S.secondaryBasicButtonPlain
-                  , class "text-sm px-4 py-2 border rounded"
+                  , class "text-sm px-4 py-2 rounded"
                   , classList
                       [ ( "hidden", env.settings.searchInHeaderBar )
                       ]
@@ -202,10 +202,14 @@ headerNavItem authenticated model =
 
             else
                 div
+        env = modelEnv model
     in
     tag
         [ class "inline-flex font-bold items-center px-4"
-        , classList [ ( "hover:bg-blue-200 dark:hover:bg-slate-800", authenticated ) ]
+        , classList
+          [ ( "hover:bg-blue-200 dark:hover:bg-slate-800", authenticated )
+          , ("max-md:hidden", env.settings.searchInHeaderBar)
+        ]
         , if authenticated then
             Page.href DashboardPage
 
