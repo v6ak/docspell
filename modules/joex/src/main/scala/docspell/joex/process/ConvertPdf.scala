@@ -58,10 +58,12 @@ object ConvertPdf {
         }
 
       for {
-        ras <- item.attachments.traverse(convert)
+        (ras, errs) <- AttemptUtils.attemptTraverseAttachments(this, item)(convert)
         nra = ras.map(_._1)
         nma = ras.flatMap(_._2)
-      } yield item.copy(attachments = nra, metas = nma)
+      } yield item
+        .copy(attachments = nra, metas = nma)
+        .withErrors(errs)
 
     }
 

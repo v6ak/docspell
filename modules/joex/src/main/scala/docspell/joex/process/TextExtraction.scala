@@ -29,7 +29,7 @@ object TextExtraction {
           s"Starting text extraction for ${item.attachments.size} files"
         )
         start <- Duration.stopTime[F]
-        txt <- item.attachments.traverse(
+        (txt, errs) <- AttemptUtils.attemptTraverseAttachments(this, item)(
           extractTextIfEmpty(
             ctx,
             store,
@@ -61,6 +61,7 @@ object TextExtraction {
       } yield item
         .copy(metas = txt.map(_.am))
         .appendTags(extractedTags)
+        .withErrors(errs)
     }
 
   // --  helpers
