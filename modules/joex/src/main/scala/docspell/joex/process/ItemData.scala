@@ -48,12 +48,11 @@ case class ItemData(
     classifyProposals: MetaProposalList,
     classifyTags: List[String],
     customData: Option[Json],
-    errors: List[Throwable] = Nil,
+    errors: List[Throwable] = Nil
 ) {
   def withErrors(errors: Seq[Throwable]): ItemData = copy(
     errors = this.errors ++ errors
   )
-
 
   /** sort by weight; order of equal weights is not important, just choose one others are
     * then suggestions doc-date is only set when given explicitly, not from "guessing"
