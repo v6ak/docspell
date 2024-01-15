@@ -31,29 +31,16 @@ object AttachmentPreview {
       item: ItemData
   ): Task[F, ProcessItemArgs, ItemData] =
     Task { ctx =>
-      def reportErrors(errs: Seq[Throwable]): F[Unit] = errs match {
-        case Seq() =>
-          ctx.logger.debug("All previews have succeeded")
-        case Seq(e) =>
-          ctx.logger.error(e)(
-            s"Creating preview image failed, continuing without it."
-          )
-        case manyErrors =>
-          ctx.logger.error(
-            s"Creating of multiple (${manyErrors.size}) preview images failed, continuing without them:\n" + manyErrors
-              .mkString("\n")
-          )
-      }
-
       for {
-        _ <- ctx.logger.info(
-          s"Creating preview images for ${item.attachments.size} files…"
-        )
         preview <- PdfboxPreview(pcfg)
-        (_, errs) <- AttemptUtils.attemptTraverseAttachments(this, item)(
+        _ <- AttemptUtils.traverseAttachmentsFailsafe(
+          actionName = "Creating preview image",
+          ctx = ctx,
+          o = this,
+          item = item
+        )(
           createPreview(ctx, store, preview)
         )
-        _ <- reportErrors(errs)
       } yield item
     }
 
