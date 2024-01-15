@@ -12,7 +12,7 @@ import cats.implicits._
 import docspell.store.records.RAttachment
 
 object AttemptUtils {
-  def attemptTraverseAttachments[F[_]: Async, O](o: Any, item: ItemData)(
+  def attemptTraverseAttachments[F[_]: Sync, O](o: Any, item: ItemData)(
       f: RAttachment => F[O]
   ): F[(Vector[O], Seq[Throwable])] =
     item.attachments
@@ -27,7 +27,7 @@ object AttemptUtils {
     * @param f
     *   function to decorate
     */
-  def attemptAttachment[F[_]: Async, O](
+  def attemptAttachment[F[_]: Sync, O](
       o: Any
   )(f: RAttachment => F[O]): RAttachment => F[Either[Throwable, O]] =
     ra =>
