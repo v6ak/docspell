@@ -30,19 +30,14 @@ object AttachmentPageCount {
   ): Task[F, ProcessItemArgs, ItemData] =
     Task { ctx =>
       for {
-        _ <- ctx.logger.info(
-          s"Retrieving page count for ${item.attachments.size} files…"
+        _ <- AttemptUtils.traverseAttachmentsFailsafe(
+          actionName = "Retrieving page count",
+          ctx = ctx,
+          o = this,
+          item = item
+        )(
+          createPageCount(ctx, store)
         )
-        _ <- item.attachments
-          .traverse(createPageCount(ctx, store))
-          .attempt
-          .flatMap {
-            case Right(_) => ().pure[F]
-            case Left(ex) =>
-              ctx.logger.error(ex)(
-                s"Retrieving page counts failed, continuing without it."
-              )
-          }
       } yield item
     }
 
