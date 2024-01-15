@@ -78,4 +78,17 @@ object ProcessItem {
       .flatMap(Task.setProgress(progress._2))
       .flatMap(analysisOnly[F](cfg, analyser, regexNer, store))
       .flatMap(Task.setProgress(progress._3))
+      .flatMap(failOnPartialFailure[F])
+
+  def failOnPartialFailure[F[_]: Sync](item: ItemData): Task[F, ProcessItemArgs, ItemData] = Task { ctx =>
+    ctx.logger.debug(s"item.errors: ${item.errors}")
+    item.errors match {
+      case Seq() => item.pure[F]
+      case Seq(e) => throw e
+      case manyErrors =>
+        throw new RuntimeException(
+          s"Multiple exceptions (${manyErrors.size}) when processing item:\n" + manyErrors.mkString("\n")
+        )
+    }
+  }
 }
