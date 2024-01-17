@@ -40,6 +40,7 @@ import Page.ShareDetail.Data
 import Page.Upload.Data
 import Page.UserSettings.Data
 import Url exposing (Url)
+import Util.Html exposing (KeyCode)
 
 
 type alias Model =
@@ -203,6 +204,8 @@ type Msg
     | ClientSettingsSaveResp (Result Http.Error BasicResult)
     | ReceiveWsMessage (Result String ServerEvent)
     | ToggleShowNewItemsArrived
+    | SetSearchInHeaderBar Bool
+    | KeyUpSearch (Maybe KeyCode)
 
 
 defaultPage : Flags -> Page

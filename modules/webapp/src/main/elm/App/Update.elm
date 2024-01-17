@@ -53,6 +53,7 @@ import Page.UserSettings.Data
 import Page.UserSettings.Update
 import Ports
 import Url
+import Util.Html exposing (KeyCode(..))
 import Util.Maybe
 import Util.Update
 
@@ -386,6 +387,21 @@ updateWithSub msg model =
             , Sub.none
             )
 
+        KeyUpSearch (Just Enter) ->
+            ( model
+            , Page.set model.key (SearchPage Nothing)
+            , Sub.none
+            )
+        KeyUpSearch _ ->
+            ( model, Cmd.none, Sub.none )
+        SetSearchInHeaderBar val ->
+            let
+                newSettings s = { s | searchInHeaderBar = Just val }
+            in
+            ( model
+            , Api.saveUserClientSettingsBy model.flags newSettings ClientSettingsSaveResp
+            , Sub.none
+            )
 
 modelEnv : Model -> Env.Update
 modelEnv model =
