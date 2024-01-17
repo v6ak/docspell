@@ -32,20 +32,15 @@ object AttachmentPreview {
   ): Task[F, ProcessItemArgs, ItemData] =
     Task { ctx =>
       for {
-        _ <- ctx.logger.info(
-          s"Creating preview images for ${item.attachments.size} files…"
-        )
         preview <- PdfboxPreview(pcfg)
-        _ <- item.attachments
-          .traverse(createPreview(ctx, store, preview))
-          .attempt
-          .flatMap {
-            case Right(_) => ().pure[F]
-            case Left(ex) =>
-              ctx.logger.error(ex)(
-                s"Creating preview images failed, continuing without it."
-              )
-          }
+        _ <- AttemptUtils.traverseAttachmentsFailsafe(
+          actionName = "Creating preview image",
+          ctx = ctx,
+          o = this,
+          item = item
+        )(
+          createPreview(ctx, store, preview)
+        )
       } yield item
     }
 
