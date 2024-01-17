@@ -1,4 +1,4 @@
-FROM alpine:20230901
+FROM alpine:20231219
 
 ARG version=
 ARG joex_url=
@@ -33,6 +33,7 @@ RUN apk update && \
     tesseract-ocr-data-pol \
     tesseract-ocr-data-est \
     tesseract-ocr-data-ukr \
+    tesseract-ocr-data-slk \
     unpaper \
     weasyprint \
     libreoffice \
