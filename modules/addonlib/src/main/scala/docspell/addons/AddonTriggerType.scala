@@ -36,8 +36,19 @@ object AddonTriggerType {
     val name = "existing-item"
   }
 
+  /** An attachment fails to process */
+  case object FailedAttachment extends AddonTriggerType {
+    val name = "failed-attachment"
+  }
+
   val all: NonEmptyList[AddonTriggerType] =
-    NonEmptyList.of(FinalProcessItem, FinalReprocessItem, Scheduled, ExistingItem)
+    NonEmptyList.of(
+      FinalProcessItem,
+      FinalReprocessItem,
+      Scheduled,
+      ExistingItem,
+      FailedAttachment
+    )
 
   def fromString(str: String): Either[String, AddonTriggerType] =
     all

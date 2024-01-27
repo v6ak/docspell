@@ -118,6 +118,7 @@ object ReProcessItem {
       store: Store[F],
       data: ItemData
   ): Task[F, Args, ItemData] = {
+    val afh = new AttachmentFailureHandling(addonOps, store)
 
     val convertArgs: Language => Args => F[ProcessItemArgs] =
       lang =>
@@ -143,7 +144,7 @@ object ReProcessItem {
 
     getLanguage[F](store).flatMap { lang =>
       ProcessItem
-        .processAttachments[F](cfg, fts, analyser, regexNer, store)(data)
+        .processAttachments[F](cfg, afh, fts, analyser, regexNer, store)(data)
         .flatMap(LinkProposal[F](store))
         .flatMap(SetGivenData[F](itemOps))
         .flatMap(RunAddons[F](addonOps, store, AddonTriggerType.FinalReprocessItem))

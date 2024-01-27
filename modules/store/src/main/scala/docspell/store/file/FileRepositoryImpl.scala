@@ -59,6 +59,20 @@ final class FileRepositoryImpl[F[_]: Sync](
         }
   }
 
+  override def overwrite(key: FileKey): Pipe[F, Byte, Unit] =
+    in =>
+      Stream
+        .eval(
+          bs.delete(keyFun(key))
+        )
+        .flatMap(_ =>
+          in
+            .through(
+              bs.insertWith(keyFun(key))
+            )
+            ++ Stream.emit(())
+        )
+
   def randomKey(
       collective: CollectiveId,
       category: FileCategory

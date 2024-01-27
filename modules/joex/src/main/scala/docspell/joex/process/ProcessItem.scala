@@ -31,24 +31,29 @@ object ProcessItem {
       regexNer: RegexNerFile[F],
       addonOps: AddonOps[F],
       store: Store[F]
-  )(item: ItemData): Task[F, ProcessItemArgs, ItemData] =
+  )(item: ItemData): Task[F, ProcessItemArgs, ItemData] = {
+    val afh = new AttachmentFailureHandling(addonOps, store)
     ExtractArchive(store)(item)
       .flatMap(Task.setProgress(20))
-      .flatMap(processAttachments0(cfg, fts, analyser, regexNer, store, (40, 60, 80)))
+      .flatMap(
+        processAttachments0(cfg, afh, fts, analyser, regexNer, store, (40, 60, 80))
+      )
       .flatMap(LinkProposal.onlyNew[F](store))
       .flatMap(SetGivenData.onlyNew[F](itemOps))
       .flatMap(Task.setProgress(99))
       .flatMap(RemoveEmptyItem(itemOps))
       .flatMap(RunAddons(addonOps, store, AddonTriggerType.FinalProcessItem))
+  }
 
   def processAttachments[F[_]: Async: Files](
       cfg: Config,
+      afh: AttachmentFailureHandling[F],
       fts: FtsClient[F],
       analyser: TextAnalyser[F],
       regexNer: RegexNerFile[F],
       store: Store[F]
   )(item: ItemData): Task[F, ProcessItemArgs, ItemData] =
-    processAttachments0[F](cfg, fts, analyser, regexNer, store, (30, 60, 90))(item)
+    processAttachments0[F](cfg, afh, fts, analyser, regexNer, store, (30, 60, 90))(item)
 
   def analysisOnly[F[_]: Async: Files](
       cfg: Config,
@@ -64,15 +69,16 @@ object ProcessItem {
 
   private def processAttachments0[F[_]: Async: Files](
       cfg: Config,
+      afh: AttachmentFailureHandling[F],
       fts: FtsClient[F],
       analyser: TextAnalyser[F],
       regexNer: RegexNerFile[F],
       store: Store[F],
       progress: (Int, Int, Int)
   )(item: ItemData): Task[F, ProcessItemArgs, ItemData] =
-    ConvertPdf(cfg.convert, store, item)
+    ConvertPdf(afh, cfg.convert, store, item)
       .flatMap(Task.setProgress(progress._1))
-      .flatMap(TextExtraction(cfg.extraction, fts, store))
+      .flatMap(TextExtraction(afh, cfg.extraction, fts, store))
       .flatMap(AttachmentPreview(cfg.extraction.preview, store))
       .flatMap(AttachmentPageCount(store))
       .flatMap(Task.setProgress(progress._2))

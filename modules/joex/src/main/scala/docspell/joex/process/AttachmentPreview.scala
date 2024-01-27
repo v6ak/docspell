@@ -33,7 +33,7 @@ object AttachmentPreview {
     Task { ctx =>
       for {
         preview <- PdfboxPreview(pcfg)
-        _ <- AttemptUtils.traverseAttachmentsFailsafe(
+        _ <- AttachmentFailureHandling.traverseAttachmentsFailsafe(
           actionName = "Creating preview image",
           ctx = ctx,
           o = this,

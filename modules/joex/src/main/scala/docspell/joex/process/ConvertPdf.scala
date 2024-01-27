@@ -37,6 +37,7 @@ object ConvertPdf {
   type Args = ProcessItemArgs
 
   def apply[F[_]: Async: Files](
+      afh: AttachmentFailureHandling[F],
       cfg: ConvertConfig,
       store: Store[F],
       item: ItemData
@@ -58,7 +59,9 @@ object ConvertPdf {
         }
 
       for {
-        (ras, errs) <- AttemptUtils.attemptTraverseAttachments(this, item)(convert)
+        (ras, errs) <- afh.attemptTraverseAttachmentsWithFallback(this, ctx, item)(
+          convert
+        )
         nra = ras.map(_._1)
         nma = ras.flatMap(_._2)
       } yield item

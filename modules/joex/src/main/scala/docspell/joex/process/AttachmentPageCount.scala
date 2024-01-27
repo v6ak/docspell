@@ -30,7 +30,7 @@ object AttachmentPageCount {
   ): Task[F, ProcessItemArgs, ItemData] =
     Task { ctx =>
       for {
-        _ <- AttemptUtils.traverseAttachmentsFailsafe(
+        _ <- AttachmentFailureHandling.traverseAttachmentsFailsafe(
           actionName = "Retrieving page count",
           ctx = ctx,
           o = this,
