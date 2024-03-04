@@ -93,6 +93,29 @@ final class ItemSearchPart[F[_]: Async](
       )
   }
 
+  def internalSearch(
+      userQuery: ItemQuery,
+      today: LocalDate
+  ): Either[F[Response[F]], F[Vector[ListItemWithTags]]] = {
+    val details = userQuery.withDetails.getOrElse(false)
+    val batch =
+      Batch(userQuery.offset.getOrElse(0), userQuery.limit.getOrElse(cfg.maxItemPageSize))
+        .restrictLimitTo(cfg.maxItemPageSize)
+    val mode = userQuery.searchMode.getOrElse(SearchMode.Normal)
+
+    parsedQuery(userQuery, mode)
+      .map(res =>
+        for {
+          _ <- logger.debug(s"Searching with query: $res")
+          items <- searchOps
+            .searchSelect(details, cfg.maxNoteLength, today.some, batch)(
+              res.q,
+              res.ftq
+            )
+        } yield items
+      )
+  }
+
   def search(userQuery: ItemQuery, today: LocalDate): F[Response[F]] = {
     val details = userQuery.withDetails.getOrElse(false)
     val batch =
