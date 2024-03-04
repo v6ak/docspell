@@ -269,16 +269,16 @@ object ItemMultiRoutes extends NonEmptyListSupport with MultiIdSupport {
         }
 
       case req @ POST -> Root / "deleteAll" =>
-        for {
-          json <- req.as[IdList]
-          items <- requireNonEmpty(json.ids)
-          n <- backend.item.setDeletedState(items, user.account.collectiveId)
-          res = BasicResult(
-            n > 0,
-            if (n > 0) "Item(s) deleted" else "Item deletion failed."
-          )
-          resp <- Ok(res)
-        } yield resp
+        multi(req, isp) { items =>
+          for {
+            n <- backend.item.setDeletedState(items, user.account.collectiveId)
+            res = BasicResult(
+              n > 0,
+              if (n > 0) "Item(s) deleted" else "Item deletion failed."
+            )
+            resp <- Ok(res)
+          } yield resp
+        }
 
       case req @ POST -> Root / "restoreAll" =>
         for {
