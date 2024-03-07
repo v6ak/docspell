@@ -31,6 +31,8 @@ trait FileRepository[F[_]] {
       category: FileCategory,
       hint: MimeTypeHint
   ): Pipe[F, Byte, FileKey]
+
+  def overwrite(key: FileKey): Pipe[F, Byte, Unit]
 }
 
 object FileRepository {

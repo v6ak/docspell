@@ -15,6 +15,7 @@ type AddonTrigger
     | FinalReprocessItem
     | Scheduled
     | ExistingItem
+    | FailedAttachment
 
 
 all : List AddonTrigger
@@ -23,6 +24,7 @@ all =
     , FinalReprocessItem
     , Scheduled
     , ExistingItem
+    , FailedAttachment
     ]
 
 
@@ -40,6 +42,9 @@ asString t =
 
         ExistingItem ->
             "existing-item"
+
+        FailedAttachment ->
+            "failed-attachment"
 
 
 fromString : String -> Maybe AddonTrigger

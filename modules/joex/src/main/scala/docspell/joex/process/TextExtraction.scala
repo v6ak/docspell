@@ -20,7 +20,12 @@ import docspell.store.records.{RAttachment, RAttachmentMeta, RFileMeta}
 
 object TextExtraction {
 
-  def apply[F[_]: Async: Files](cfg: ExtractConfig, fts: FtsClient[F], store: Store[F])(
+  def apply[F[_]: Async: Files](
+      afh: AttachmentFailureHandling[F],
+      cfg: ExtractConfig,
+      fts: FtsClient[F],
+      store: Store[F]
+  )(
       item: ItemData
   ): Task[F, ProcessItemArgs, ItemData] =
     Task { ctx =>
@@ -29,7 +34,7 @@ object TextExtraction {
           s"Starting text extraction for ${item.attachments.size} files"
         )
         start <- Duration.stopTime[F]
-        (txt, errs) <- AttemptUtils.attemptTraverseAttachments(this, item)(
+        (txt, errs) <- afh.attemptTraverseAttachmentsWithFallback(this, ctx, item)(
           extractTextIfEmpty(
             ctx,
             store,

@@ -18,14 +18,32 @@ import io.circe.{Decoder, Encoder}
 case class AddonOutput(
     commands: List[BackendCommand] = Nil,
     files: List[ItemFile] = Nil,
-    newItems: List[NewItem] = Nil
+    newItems: List[NewItem] = Nil,
+    attachmentFix: Option[String] = None
 )
 
 object AddonOutput {
   val empty: AddonOutput = AddonOutput()
 
+  private def combineAttachmentFixes(
+      a: Option[String],
+      b: Option[String]
+  ): Option[String] = (a, b) match {
+    case (Some(_), None)    => a
+    case (None, Some(_))    => b
+    case (None, None)       => None
+    case (Some(_), Some(_)) =>
+      // This should never happen, and maybe we'll get rid of it when refactoring…
+      throw new RuntimeException(s"Cannot combine two attachment fixes $a and $b!")
+  }
+
   def combine(a: AddonOutput, b: AddonOutput): AddonOutput =
-    AddonOutput(a.commands ++ b.commands, a.files ++ b.files, a.newItems ++ b.newItems)
+    AddonOutput(
+      commands = a.commands ++ b.commands,
+      files = a.files ++ b.files,
+      newItems = a.newItems ++ b.newItems,
+      attachmentFix = combineAttachmentFixes(a.attachmentFix, b.attachmentFix)
+    )
 
   implicit val addonResultMonoid: Monoid[AddonOutput] =
     Monoid.instance(empty, combine)

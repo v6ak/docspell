@@ -73,6 +73,32 @@ object GenericItemAddonTask extends LoggerExtension {
       )
     }
 
+  def addonResults[F[_]: Async: Files](
+      ops: AddonOps[F],
+      store: Store[F],
+      trigger: AddonTriggerType,
+      addonTaskIds: Set[Ident]
+  )(
+      collective: CollectiveId,
+      data: ItemData,
+      maybeMeta: Option[ProcessItemArgs.ProcessMeta],
+      env: Map[String, String] = Map.empty
+  ): Task[F, Unit, Seq[F[ExecResult]]] =
+    Task { ctx =>
+      def ie(inputEnv: InputEnv): InputEnv = inputEnv.addEnv(env)
+
+      import ops._
+      val triggers = Set(trigger)
+      val custom = Middleware.prepare(
+        Kleisli((ie _).andThen(prepareItemData(ctx.logger, store, data, maybeMeta)))
+      )
+      for {
+        runCfgs <- findAddonRefs(collective, triggers, addonTaskIds)
+        _ <- ctx.logger.info(s"Running ${runCfgs.size} addon tasks for trigger $triggers")
+        results = runCfgs.map(r => execById(collective, r.id, ctx.logger)(custom))
+      } yield results
+    }
+
   def prepareItemData[F[_]: Async: Files](
       logger: Logger[F],
       store: Store[F],
