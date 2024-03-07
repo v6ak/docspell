@@ -6,6 +6,9 @@
 
 package docspell.restserver.routes
 
+import java.time.LocalDate
+
+import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
 
@@ -17,14 +20,80 @@ import docspell.restapi.model._
 import docspell.restserver.Config
 import docspell.restserver.conv.{Conversions, MultiIdSupport, NonEmptyListSupport}
 import docspell.restserver.http4s.ClientRequestInfo
+import docspell.restserver.routes.ItemMultiRoutes.requireNonEmpty
 import docspell.scheduler.usertask.UserTaskScope
 
-import org.http4s.HttpRoutes
+import io.circe.Decoder.Result
+import io.circe.HCursor
 import org.http4s.circe.CirceEntityDecoder._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.dsl.Http4sDsl
+import org.http4s.{HttpRoutes, Request, Response}
+
+sealed abstract class ItemsSpec {
+
+  def toIds[F[_]: Sync](
+      itemSearchPart: ItemSearchPart[F],
+      today: LocalDate
+  ): Either[F[Response[F]], F[NonEmptyList[Ident]]]
+}
+
+object ItemsSpec {
+  case class ByIds(idList: IdList) extends ItemsSpec {
+
+    override def toIds[F[_]: Sync](
+        itemSearchPart: ItemSearchPart[F],
+        today: LocalDate
+    ): Either[F[Response[F]], F[NonEmptyList[Ident]]] =
+      Right(requireNonEmpty(idList.ids))
+  }
+  case class ByQuery(query: ItemQuery) extends ItemsSpec {
+    override def toIds[F[_]: Sync](
+        itemSearchPart: ItemSearchPart[F],
+        today: LocalDate
+    ): Either[F[Response[F]], F[NonEmptyList[Ident]]] =
+      itemSearchPart
+        .internalSearch(
+          userQuery = query.copy(withDetails = false.some),
+          today = LocalDate.now()
+        )
+        .map(vecF => vecF.flatMap(vec => requireNonEmpty(vec.map(_.item.id).toList)))
+  }
+
+  implicit val jsonDecoder: io.circe.Decoder[ItemsSpec] =
+    new io.circe.Decoder[ItemsSpec] {
+      override def apply(c: HCursor): Result[ItemsSpec] =
+        IdList.jsonDecoder
+          .apply(c)
+          .map[ItemsSpec](ByIds)
+          .recoverWith(_ =>
+            ItemQuery.jsonDecoder
+              .apply(c)
+              .map[ItemsSpec](ByQuery)
+          )
+    }
+
+}
 
 object ItemMultiRoutes extends NonEmptyListSupport with MultiIdSupport {
+
+  def multi[F[_]: Async](req: Request[F], isp: ItemSearchPart[F])(
+      f: NonEmptyList[Ident] => F[Response[F]]
+  ): F[Response[F]] =
+    for {
+      today <- Timestamp.current[F].map(_.toUtcDate)
+      json <- req.as[ItemsSpec]
+      res <- json
+        .toIds(isp, today)
+        .fold(
+          identity,
+          itemsF =>
+            for {
+              items <- itemsF
+              res <- f(items)
+            } yield res
+        )
+    } yield res
 
   def apply[F[_]: Async](
       cfg: Config,
@@ -34,6 +103,7 @@ object ItemMultiRoutes extends NonEmptyListSupport with MultiIdSupport {
     val logger = docspell.logging.getLogger[F]
     val dsl = new Http4sDsl[F] {}
     import dsl._
+    val isp = ItemSearchPart(search = backend.search, cfg = cfg, token = user)
 
     HttpRoutes.of {
       case req @ PUT -> Root / "confirm" =>
@@ -187,28 +257,28 @@ object ItemMultiRoutes extends NonEmptyListSupport with MultiIdSupport {
         } yield resp
 
       case req @ POST -> Root / "reprocess" =>
-        for {
-          json <- req.as[IdList]
-          items <- requireNonEmpty(json.ids)
-          res <- backend.item.reprocessAll(
-            user.account.collectiveId,
-            items,
-            UserTaskScope(user.account)
-          )
-          resp <- Ok(Conversions.basicResult(res, "Re-process task(s) submitted."))
-        } yield resp
+        multi(req, isp) { items =>
+          for {
+            res <- backend.item.reprocessAll(
+              user.account.collectiveId,
+              items,
+              UserTaskScope(user.account)
+            )
+            resp <- Ok(Conversions.basicResult(res, "Re-process task(s) submitted."))
+          } yield resp
+        }
 
       case req @ POST -> Root / "deleteAll" =>
-        for {
-          json <- req.as[IdList]
-          items <- requireNonEmpty(json.ids)
-          n <- backend.item.setDeletedState(items, user.account.collectiveId)
-          res = BasicResult(
-            n > 0,
-            if (n > 0) "Item(s) deleted" else "Item deletion failed."
-          )
-          resp <- Ok(res)
-        } yield resp
+        multi(req, isp) { items =>
+          for {
+            n <- backend.item.setDeletedState(items, user.account.collectiveId)
+            res = BasicResult(
+              n > 0,
+              if (n > 0) "Item(s) deleted" else "Item deletion failed."
+            )
+            resp <- Ok(res)
+          } yield resp
+        }
 
       case req @ POST -> Root / "restoreAll" =>
         for {
