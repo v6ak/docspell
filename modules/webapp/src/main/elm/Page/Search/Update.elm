@@ -27,6 +27,7 @@ import Data.Environment as Env
 import Data.Flags exposing (Flags)
 import Data.ItemArrange
 import Data.ItemIds exposing (ItemIds)
+import Data.SelectedItems exposing (SelectedItems)
 import Data.ItemQuery as Q
 import Data.Items
 import Data.SearchMode exposing (SearchMode)
@@ -47,7 +48,7 @@ type alias UpdateResult =
     , cmd : Cmd Msg
     , sub : Sub Msg
     , appEvent : AppEvent
-    , selectedItems : ItemIds
+    , selectedItems : SelectedItems
     }
 
 
@@ -186,7 +187,7 @@ update texts bookmarkId lastViewedItemId env msg model =
             , cmd = Cmd.batch [ Cmd.map ItemCardListMsg result.cmd, searchMsg ]
             , sub = Sub.none
             , appEvent = AppNothing
-            , selectedItems = itemIds
+            , selectedItems = Explicit itemIds
             }
 
         ToggleExpandCollapseRows ->
@@ -355,7 +356,7 @@ update texts bookmarkId lastViewedItemId env msg model =
                 res_ =
                     resultModelCmd env.selectedItems ( model, Cmd.none )
             in
-            { res_ | selectedItems = itemIds }
+            { res_ | selectedItems = Explicit itemIds }
 
         SelectNoItems ->
             resultModelCmd Data.ItemIds.empty ( model, Cmd.none )

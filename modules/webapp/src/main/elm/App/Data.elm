@@ -70,7 +70,7 @@ type alias Model =
     , langMenuOpen : Bool
     , showNewItemsArrived : Bool
     , jobsWaiting : Int
-    , selectedItems : ItemIds
+    , selectedItems : SelectedItems
     }
 
 

@@ -47,5 +47,5 @@ type alias UpdateResult =
     , sub : Sub Msg
     , linkTarget : LinkTarget
     , removedItem : Maybe String
-    , selectedItems : ItemIds
+    , selectedItems : SelectedItems
     }

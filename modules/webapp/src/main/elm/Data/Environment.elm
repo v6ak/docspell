@@ -10,12 +10,13 @@ module Data.Environment exposing (..)
 import Browser.Navigation as Nav
 import Data.Flags exposing (Flags)
 import Data.ItemIds exposing (ItemIds)
+import Data.SelectedItems exposing (SelectedItems)
 import Data.UiSettings exposing (UiSettings)
 
 
 type alias Update =
     { key : Nav.Key
-    , selectedItems : ItemIds
+    , selectedItems : SelectedItems
     , flags : Flags
     , settings : UiSettings
     }
@@ -25,5 +26,5 @@ type alias View =
     { flags : Flags
     , sidebarVisible : Bool
     , settings : UiSettings
-    , selectedItems : ItemIds
+    , selectedItems : SelectedItems
     }

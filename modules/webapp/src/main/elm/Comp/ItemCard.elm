@@ -27,6 +27,7 @@ import Data.ItemArrange exposing (ItemArrange)
 import Data.ItemIds exposing (ItemIdChange, ItemIds)
 import Data.ItemSelection exposing (ItemSelection)
 import Data.ItemTemplate as IT
+import Data.SelectedItems
 import Data.UiSettings exposing (UiSettings)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -989,7 +990,7 @@ isSelected : ViewConfig -> String -> Bool
 isSelected cfg id =
     case cfg.selection of
         Data.ItemSelection.Active ids ->
-            Data.ItemIds.isMember ids id
+            Data.SelectedItems.isMember ids id
 
         Data.ItemSelection.Inactive ->
             False

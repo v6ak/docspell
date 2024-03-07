@@ -268,7 +268,7 @@ type alias SearchParam =
     , pageSize : Int
     , offset : Int
     , scroll : Bool
-    , selectedItems : ItemIds
+    , selectedItems : SelectedItems
     }
 
 

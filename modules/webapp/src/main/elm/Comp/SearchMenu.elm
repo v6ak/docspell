@@ -54,6 +54,7 @@ import Data.EquipmentUse
 import Data.Fields
 import Data.Flags exposing (Flags)
 import Data.ItemIds exposing (ItemIdChange, ItemIds)
+import Data.SelectedItems exposing (SelectedItems)
 import Data.ItemQuery as Q exposing (ItemQuery)
 import Data.PersonOrder
 import Data.PersonUse
@@ -1262,7 +1263,7 @@ updateDrop ddm flags settings msg model =
 
 type alias ViewConfig =
     { overrideTabLook : SearchTab -> Comp.Tabs.Look -> Comp.Tabs.Look
-    , selectedItems : ItemIds
+    , selectedItems : SelectedItems
     }
 
 
@@ -1409,7 +1410,7 @@ findTab tab =
             Nothing
 
 
-tabLook : UiSettings -> ItemIds -> Model -> SearchTab -> Comp.Tabs.Look
+tabLook : UiSettings -> SelectedItems -> Model -> SearchTab -> Comp.Tabs.Look
 tabLook settings selectedItems model tab =
     let
         isHidden f =
@@ -1506,7 +1507,7 @@ tabLook settings selectedItems model tab =
             activeWhen (model.searchMode == Data.SearchMode.Trashed)
 
         TabSelection ->
-            if Data.ItemIds.isEmpty selectedItems then
+            if Data.SelectedItems.isEmpty selectedItems then
                 Comp.Tabs.Hidden
 
             else if model.includeSelection then
