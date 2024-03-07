@@ -11,7 +11,7 @@ jobs:
       matrix:
         java: [ 'openjdk@1.17' ]
     env:
-      SBT_OPTS: -Xmx3G
+      SBT_OPTS: -Xmx3G -Xss4m
     steps:
       - uses: actions/checkout@v4.1.1
         with:
