@@ -27,10 +27,50 @@ class AttachmentFailureHandling[F[_]: Async: Files](ops: AddonOps[F], store: Sto
       itemData: ItemData
   )(
       f: RAttachment => F[O]
+  ): F[(Vector[O], Seq[Throwable])] = attemptTraverseAttachmentStructuresWithFallback(
+    o = o,
+    ctx = ctx,
+    itemData = itemData,
+    enumerate = _.attachments,
+    updateStructure = (_ /*oldAttachment*/: RAttachment, newAttachment) => newAttachment,
+    extractAttachment = identity[RAttachment],
+    f = f
+  )
+
+  /** More generic version of attemptTraverseAttachmentsWithFallback. Instead of
+    * RAttachment, it works with generic type A (called attachment structure). You however
+    * have to provide some functions that allow the code to work with the structure.
+    *
+    * @param o
+    * @param ctx
+    *   context
+    * @param itemData
+    * @param enumerate
+    *   function that extracts vector of attachment structures from ItemData
+    * @param updateStructure
+    * @param f
+    *   function that converts attachment structure to result
+    * @tparam O
+    *   desired result
+    * @tparam A
+    *   attachment structure – some type that contains RAttachment
+    * @return
+    *   results and failures
+    */
+  def attemptTraverseAttachmentStructuresWithFallback[O, A](
+      o: Any,
+      ctx: Context[F, _],
+      itemData: ItemData,
+      enumerate: ItemData => Vector[A],
+      updateStructure: (A, RAttachment) => A,
+      extractAttachment: A => RAttachment,
+      f: A => F[O]
   ): F[(Vector[O], Seq[Throwable])] =
-    itemData.attachments
-      .traverse(
-        attemptAttachmentWithReplacements(o, itemData, ctx)(f)
+    enumerate(itemData)
+      .traverse(attachmentStructure =>
+        attemptAttachmentWithReplacements(o, itemData, ctx)(ra =>
+          f(updateStructure(attachmentStructure, ra))
+        )(extractAttachment(attachmentStructure))
       )
       .map(all => (onlySuccesses(all), onlyErrors(all)))
 

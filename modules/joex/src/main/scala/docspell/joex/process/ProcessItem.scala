@@ -32,7 +32,8 @@ object ProcessItem {
       addonOps: AddonOps[F],
       store: Store[F]
   )(item: ItemData): Task[F, ProcessItemArgs, ItemData] = {
-    val afh = new AttachmentFailureHandling(addonOps, store)
+    implicit val afh: AttachmentFailureHandling[F] =
+      new AttachmentFailureHandling(addonOps, store)
     ExtractArchive(store)(item)
       .flatMap(Task.setProgress(20))
       .flatMap(

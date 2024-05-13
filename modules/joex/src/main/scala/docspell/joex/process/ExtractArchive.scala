@@ -36,12 +36,12 @@ import emil.Mail
 object ExtractArchive {
   type Args = ProcessItemArgs
 
-  def apply[F[_]: Async: Files](store: Store[F])(
+  def apply[F[_]: Async: Files: AttachmentFailureHandling](store: Store[F])(
       item: ItemData
   ): Task[F, Args, ItemData] =
     multiPass(store, item, None).map(_._2)
 
-  def multiPass[F[_]: Async: Files](
+  def multiPass[F[_]: Async: Files: AttachmentFailureHandling](
       store: Store[F],
       item: ItemData,
       archive: Option[RAttachmentArchive]
@@ -51,7 +51,7 @@ object ExtractArchive {
       else multiPass(store, t._2, t._1)
     }
 
-  def singlePass[F[_]: Async: Files](
+  def singlePass[F[_]: Async: Files: AttachmentFailureHandling](
       store: Store[F],
       item: ItemData,
       archive: Option[RAttachmentArchive]
@@ -62,20 +62,34 @@ object ExtractArchive {
 
       for {
         lastPos <- store.transact(RAttachment.nextPosition(item.item.id))
-        extracts <-
-          item.attachments.zipWithIndex
-            .traverse(t => extract(t._1, lastPos + t._2))
-            .map(Monoid[Extracted].combineAll)
-            .map(fixPositions)
+
+        (extractedVec, errs) <- implicitly[AttachmentFailureHandling[F]]
+          .attemptTraverseAttachmentStructuresWithFallback(
+            this,
+            ctx,
+            item,
+            enumerate = _.attachments.zipWithIndex,
+            updateStructure =
+              (item: (RAttachment, Int), attachment) => item.copy(_1 = attachment),
+            extractAttachment = (_: (RAttachment, Int))._1,
+            f = (t: (RAttachment, Int)) => extract(t._1, lastPos + t._2)
+          )
+
+        extracts <- extractedVec
+          .pure[F]
+          .map(Monoid[Extracted].combineAll)
+          .map(fixPositions)
         nra = extracts.files
         _ <- extracts.files.traverse(storeAttachment(store))
         naa = extracts.archives
         _ <- naa.traverse(storeArchive(store))
-      } yield naa.headOption -> item.copy(
-        attachments = nra,
-        originFile = item.originFile ++ nra.map(a => a.id -> a.fileId).toMap,
-        givenMeta = item.givenMeta.fillEmptyFrom(extracts.meta)
-      )
+      } yield naa.headOption -> item
+        .copy(
+          attachments = nra,
+          originFile = item.originFile ++ nra.map(a => a.id -> a.fileId).toMap,
+          givenMeta = item.givenMeta.fillEmptyFrom(extracts.meta)
+        )
+        .withErrors(errs)
     }
 
   /** After all files have been extracted, the `extract' contains the whole (combined)
